@@ -13,7 +13,7 @@ let pSeed = params.seed;
 let pLight = params.light;
 let pBurned = params.burned;
 
-var DEFAULT_SIZE = 1000;
+var DEFAULT_SIZE = 800;
 var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
 var DIM = Math.min(WIDTH, HEIGHT);
@@ -32,23 +32,25 @@ let sca = DIM/3;
 let str = 5;
 let sf // scale factor, for zoom
 let of = [0,0]; // offset, for zoom
-let randSeed = Date.now(); // the seed for the timestamp
+let randSeed = Date.now()|0;
+let seed = randSeed;
 let darkmode = true; // light or dark background
 let unburned = true; // is it burned?
+if(pSeed) seed = parseInt(pSeed);
 if(pLight && pLight=="true") darkmode = false;
 if(pBurned && pBurned=="true") unburned = false;
 let px = Math.max(2, DIM/200) | 0 // pixel size for points
 let step = 0;
 
-function setup() {
-  if(pSeed){
-    randomSeed(Number(pSeed));
-    noiseSeed(Number(pSeed));
-  }else{
-    randomSeed(randSeed);
-    noiseSeed(randSeed);
-  }
+let metadata = {seed:0, water:0, forest:0, aridity:0, total:0}
+if(pSeed){
+  metadata.seed = pSeed;
+}else{
+  metadata.seed = randSeed;
+}
 
+
+function setup() {
   colorMode(HSB,100);
   createCanvas(WIDTH, HEIGHT);
   if (darkmode){
@@ -56,9 +58,11 @@ function setup() {
   } else {
     background(0,0,90);
   }
-
+  console.log(seed);
+  randomSeed(seed);
+  noiseSeed(seed);
   sf = random(0.9,1.1);
-  of = [random(-width/6,width/6), random(-width/6,width/6)]
+  of = [random(-width/8,width/8), random(-width/8,width/8)]
 
 }
 
@@ -69,6 +73,9 @@ function draw() {
   translate(of[0],of[1])
 
   if(step == 0){
+    randomSeed(seed);
+    noiseSeed(seed);
+
     step = 1;
     // ellipse(0,0,r*2);
 
@@ -122,7 +129,9 @@ function draw() {
         for(let y = -r; y < r; y+=px*.9){
           let z = noise((x+r)/(sca/1.5), (y+r)/(sca/1.5));
           if((x**2 + y**2) < (r)**2) {
+            metadata.total ++
             if(z < 0.5){
+              metadata.water ++
               // water #161915 86 sat
               stroke(100*207/360,86,random(50,70));
               point(x,y);
@@ -145,6 +154,7 @@ function draw() {
           // dark forest addition
           stroke(100*132/360,42,29,66);
           for(let i=0; i<50; i++){
+            metadata.forest ++
             point(space.x, space.y);
             randx = space.x + random([-px,0,px]);
             randy = space.y + random([-px,0,px]);
@@ -161,8 +171,10 @@ function draw() {
             point(space.x, space.y);
             randx = space.x + random([-px,0,px,px*2]);
             randy = space.y + random([-px*2,-px,0,px,px*2]);
+            same = (randx == space.x) & (randy == space.y);
             randz = noise((randx+r)/(sca/1.5), (randy+r)/(sca/1.5));
-            if(((randx**2 + randy**2) < (r)**2) & randz > 0.55) {
+            if(((randx**2 + randy**2) < (r)**2) & randz > 0.55 & !same) {
+              metadata.aridity ++
               space.x = randx
               space.y = randy
             }
