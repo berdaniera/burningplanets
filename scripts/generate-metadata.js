@@ -8,8 +8,8 @@ async function generate(seed){
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.setViewport({
-    width: 800,
-    height: 800
+    width: 400,
+    height: 400
   });
   await page.goto(`http://localhost:8080/planet.html?seed=${seed}`);
   await page.waitForTimeout(3000);

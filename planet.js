@@ -58,19 +58,115 @@ function setup() {
   } else {
     background(0,0,90);
   }
-  console.log(seed);
   randomSeed(seed);
   noiseSeed(seed);
   sf = random(0.9,1.1);
   of = [random(-width/8,width/8), random(-width/8,width/8)]
+
+  if(unburned){
+    translate(width/2, height/2);
+    noFill();
+    scale(sf);
+    translate(of[0],of[1]);
+
+    // plot planet, if not burned
+    rotate(radians(-23.4));
+
+    // create cloud vectors
+    for(let i=0; i<500; i++){
+      x = random(-r,r);
+      y = random(-r,r);
+      s = random(-px*2.5,px*2.5);
+      if((x**2 + y**2) < (r-5)**2) {
+        c.push({x:x,y:y,s:s});
+      }
+    }
+
+    // add water and land
+    let ff = [] // forest and desert vector
+    strokeWeight(px);
+    for(let x = -r; x < r; x+=px*.9){
+      for(let y = -r; y < r; y+=px*.9){
+        let z = noise((x+r)/(sca/1.5), (y+r)/(sca/1.5));
+        if((x**2 + y**2) < (r)**2) {
+          metadata.total ++
+          if(z < 0.5){
+            metadata.water ++
+            // water #161915 86 sat
+            stroke(100*207/360,86,random(50,70));
+            point(x,y);
+          } else{
+            if(random(1) < 0.005){
+              // forest seed
+              ff.push({x:x,y:y});
+            }
+            stroke(100*71/360,44,53);
+            point(x,y);
+          }
+        }
+      }
+    }
+
+    strokeWeight(px);
+    for(let j=0; j<Math.min(ff.length,30); j++){
+      let space = ff[j]
+      if(random(1) > 0.66){
+        // dark forest addition
+        stroke(100*132/360,42,29,66);
+        for(let i=0; i<50; i++){
+          metadata.forest ++
+          point(space.x, space.y);
+          randx = space.x + random([-px,0,px]);
+          randy = space.y + random([-px,0,px]);
+          randz = noise((randx+r)/(sca/1.5), (randy+r)/(sca/1.5));
+          if(((randx**2 + randy**2) < (r)**2) & randz > 0.51) {
+            space.x = randx
+            space.y = randy
+          }
+        }
+      }else{
+        // desert
+        stroke(100*40/360,34,84,66);
+        for(let i=0; i<r*2; i++){
+          point(space.x, space.y);
+          randx = space.x + random([-px,0,px,px*2]);
+          randy = space.y + random([-px*2,-px,0,px,px*2]);
+          same = (randx == space.x) & (randy == space.y);
+          randz = noise((randx+r)/(sca/1.5), (randy+r)/(sca/1.5));
+          if(((randx**2 + randy**2) < (r)**2) & randz > 0.55 & !same) {
+            metadata.aridity ++
+            space.x = randx
+            space.y = randy
+          }
+        }
+      }
+    }
+
+    if (darkmode) {
+      strokeWeight(px);
+    } else{
+      strokeWeight(px/2);
+    }
+    stroke(100*97/360,59,9,50);
+    // vertical dots
+    for(let xi = -r; xi <= r; xi += px*10){
+      for(let a = 90; a<=270; a+=2){
+        y = r * sin(radians(a));
+        x = xi * cos(radians(a));
+        point(x,y);
+      }
+    }
+    rotate(radians(23.4));
+
+  }
 
 }
 
 function draw() {
   translate(width/2, height/2);
   noFill();
-  scale(sf)
-  translate(of[0],of[1])
+  scale(sf);
+  translate(of[0],of[1]);
 
   if(step == 0){
     randomSeed(seed);
@@ -104,96 +200,6 @@ function draw() {
         if((randx**2 + randy**2) > (r)**2) {
           space.x = randx
           space.y = randy
-        }
-      }
-    }
-
-    if(unburned){
-      // plot planet, if not burned
-      rotate(radians(-23.4));
-
-      // create cloud vectors
-      for(let i=0; i<500; i++){
-        x = random(-r,r);
-        y = random(-r,r);
-        s = random(-px*2.5,px*2.5);
-        if((x**2 + y**2) < (r-5)**2) {
-          c.push({x:x,y:y,s:s});
-        }
-      }
-
-      // add water and land
-      let ff = [] // forest and desert vector
-      strokeWeight(px);
-      for(let x = -r; x < r; x+=px*.9){
-        for(let y = -r; y < r; y+=px*.9){
-          let z = noise((x+r)/(sca/1.5), (y+r)/(sca/1.5));
-          if((x**2 + y**2) < (r)**2) {
-            metadata.total ++
-            if(z < 0.5){
-              metadata.water ++
-              // water #161915 86 sat
-              stroke(100*207/360,86,random(50,70));
-              point(x,y);
-            } else{
-              if(random(1) < 0.005){
-                // forest seed
-                ff.push({x:x,y:y});
-              }
-              stroke(100*71/360,44,53);
-              point(x,y);
-            }
-          }
-        }
-      }
-
-      strokeWeight(px);
-      for(let j=0; j<Math.min(ff.length,30); j++){
-        let space = ff[j]
-        if(random(1) > 0.66){
-          // dark forest addition
-          stroke(100*132/360,42,29,66);
-          for(let i=0; i<50; i++){
-            metadata.forest ++
-            point(space.x, space.y);
-            randx = space.x + random([-px,0,px]);
-            randy = space.y + random([-px,0,px]);
-            randz = noise((randx+r)/(sca/1.5), (randy+r)/(sca/1.5));
-            if(((randx**2 + randy**2) < (r)**2) & randz > 0.51) {
-              space.x = randx
-              space.y = randy
-            }
-          }
-        }else{
-          // desert
-          stroke(100*40/360,34,84,66);
-          for(let i=0; i<r*2; i++){
-            point(space.x, space.y);
-            randx = space.x + random([-px,0,px,px*2]);
-            randy = space.y + random([-px*2,-px,0,px,px*2]);
-            same = (randx == space.x) & (randy == space.y);
-            randz = noise((randx+r)/(sca/1.5), (randy+r)/(sca/1.5));
-            if(((randx**2 + randy**2) < (r)**2) & randz > 0.55 & !same) {
-              metadata.aridity ++
-              space.x = randx
-              space.y = randy
-            }
-          }
-        }
-      }
-
-      if (darkmode) {
-        strokeWeight(px);
-      } else{
-        strokeWeight(px/2);
-      }
-      stroke(100*97/360,59,9,50);
-      // vertical dots
-      for(let xi = -r; xi <= r; xi += px*10){
-        for(let a = 90; a<=270; a+=2){
-          y = r * sin(radians(a));
-          x = xi * cos(radians(a));
-          point(x,y);
         }
       }
     }
