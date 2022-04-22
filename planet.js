@@ -178,9 +178,9 @@ function draw() {
     // outer space
     strokeWeight(px*2);
     for(let j=0; j<height; j+=DIM/20){
-      let space = {x:random(-width,width),y:j};
-      for(let i=0; i<20000; i++){
-        if(Math.random()<0.001){
+      let space = {x:random(-width/2,width/2),y:j};
+      for(let i=0; i<15000; i++){
+        if(Math.random()<0.0012){
           // stars
           strokeWeight(random(px*2))
           if (darkmode){
